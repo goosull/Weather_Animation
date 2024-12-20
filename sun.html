@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snow Falling Animation</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+    <script>
+      // Scene, Camera, Renderer
+      const scene = new THREE.Scene();
+      const camera = new THREE.OrthographicCamera(
+        window.innerWidth / -2,
+        window.innerWidth / 2,
+        window.innerHeight / 2,
+        window.innerHeight / -2,
+        0.1,
+        1000
+      );
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      camera.position.z = 1;
+
+      // Create Clouds with varying sizes and opacities
+      const clouds = [];
+      const cloudCount = 5;
+      const speeds = []; // Store individual speeds for each cloud
+
+      for (let i = 0; i < cloudCount; i++) {
+        const size = Math.random() * 2 + 3; // Random size between 3px and 5px
+        const opacity = 1;
+        const speed = Math.random() * 1.5 + 0.5; // Random speed between 0.5 and 2
+        // conjoin many circles to form a cloud
+        // position of the circles are randomized but they are together
+        const mainCircleGeometry = new THREE.CircleGeometry(size, 32);
+        const circle1Geometry = new THREE.CircleGeometry(size * 0.7, 32);
+        const circle2Geometry = new THREE.CircleGeometry(size * 0.9, 32);
+        const circle3Geometry = new THREE.CircleGeometry(size * 0.5, 32);
+
+        const cloudGeometry = new THREE.Geometry();
+        cloudGeometry.merge(mainCircle);
+        cloudGeometry.merge(circle1);
+        cloudGeometry.merge(circle2);
+        cloudGeometry.merge(circle3);
+
+        const cloudMaterial = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity,
+        });
+
+        const mainCircle = new THREE.Mesh(mainCircleGeometry, cloudMaterial);
+        const circle1 = new THREE.Mesh(circle1Geometry, cloudMaterial);
+        const circle2 = new THREE.Mesh(circle2Geometry, cloudMaterial);
+        const circle3 = new THREE.Mesh(circle3Geometry, cloudMaterial);
+
+        // Position the sub-circles relative to the main circle
+        circle1.position.set(size * 0.8, size * 0.2, 0); // Right top
+        circle2.position.set(size * -0.6, size * 0.3, 0); // Left top
+        circle3.position.set(size * 0.1, size * -0.5, 0); // Bottom center
+
+        const cloud = new THREE.Group();
+        cloud.add(mainCircle);
+        cloud.add(circle1);
+        cloud.add(circle2);
+        cloud.add(circle3);
+
+        cloud.position.set(
+          Math.random() * window.innerWidth - window.innerWidth / 2,
+          Math.random() * window.innerHeight - window.innerHeight / 2,
+          0
+        );
+        clouds.push(cloud);
+        speeds.push(speed);
+        scene.add(cloud);
+      }
+
+      // Animate clouds
+      function animate() {
+        requestAnimationFrame(animate);
+
+        for (let i = 0; i < clouds.length; i++) {
+          const cloud = clouds[i];
+          cloud.position.x += speeds[i];
+          if (cloud.position.x > window.innerWidth / 2) {
+            cloud.position.x = window.innerWidth / -2;
+            cloud.position.y =
+              Math.random() * window.innerHeight - window.innerHeight / 2;
+          }
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      // Handle Window Resize
+      window.addEventListener("resize", () => {
+        camera.left = window.innerWidth / -2;
+        camera.right = window.innerWidth / 2;
+        camera.top = window.innerHeight / 2;
+        camera.bottom = window.innerHeight / -2;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    </script>
+  </body>
+</html>
