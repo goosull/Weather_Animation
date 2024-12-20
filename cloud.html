@@ -36,53 +36,47 @@
 
       // Create Clouds with varying sizes and opacities
       const clouds = [];
-      const cloudCount = 5;
+      const cloudCount = 15;
       const speeds = []; // Store individual speeds for each cloud
 
       for (let i = 0; i < cloudCount; i++) {
-        const size = Math.random() * 2 + 3; // Random size between 3px and 5px
-        const opacity = 1;
+        const baseSize = Math.random() * 30 + 30; // Random base size between 30px and 60px
+        const opacity = 1; // Opacity is set to full
         const speed = Math.random() * 1.5 + 0.5; // Random speed between 0.5 and 2
-        // conjoin many circles to form a cloud
-        // position of the circles are randomized but they are together
-        const mainCircleGeometry = new THREE.CircleGeometry(size, 32);
-        const circle1Geometry = new THREE.CircleGeometry(size * 0.7, 32);
-        const circle2Geometry = new THREE.CircleGeometry(size * 0.9, 32);
-        const circle3Geometry = new THREE.CircleGeometry(size * 0.5, 32);
 
-        const cloudGeometry = new THREE.Geometry();
-        cloudGeometry.merge(mainCircle);
-        cloudGeometry.merge(circle1);
-        cloudGeometry.merge(circle2);
-        cloudGeometry.merge(circle3);
-
+        // Create material
         const cloudMaterial = new THREE.MeshBasicMaterial({
           color: 0xffffff,
           transparent: true,
           opacity,
         });
 
-        const mainCircle = new THREE.Mesh(mainCircleGeometry, cloudMaterial);
-        const circle1 = new THREE.Mesh(circle1Geometry, cloudMaterial);
-        const circle2 = new THREE.Mesh(circle2Geometry, cloudMaterial);
-        const circle3 = new THREE.Mesh(circle3Geometry, cloudMaterial);
-
-        // Position the sub-circles relative to the main circle
-        circle1.position.set(size * 0.8, size * 0.2, 0); // Right top
-        circle2.position.set(size * -0.6, size * 0.3, 0); // Left top
-        circle3.position.set(size * 0.1, size * -0.5, 0); // Bottom center
-
+        // Create a group for the cloud
         const cloud = new THREE.Group();
-        cloud.add(mainCircle);
-        cloud.add(circle1);
-        cloud.add(circle2);
-        cloud.add(circle3);
 
+        // Generate multiple circles for the cloud
+        const circleCount = Math.floor(Math.random() * 15) + 15; // 15 to 30 circles
+        for (let j = 0; j < circleCount; j++) {
+          const circleSize = baseSize * (Math.random() * 0.6 + 0.7); // Vary size between 70% and 130% of base
+          const circleGeometry = new THREE.CircleGeometry(circleSize, 32);
+          const circleMesh = new THREE.Mesh(circleGeometry, cloudMaterial);
+
+          // Randomize position around the center (wider spread)
+          const xOffset = Math.random() * baseSize * 4 - baseSize * 2; // Spread x-axis
+          const yOffset = Math.random() * baseSize * 1.5 - baseSize * 0.75; // Spread y-axis
+
+          circleMesh.position.set(xOffset, yOffset, 0);
+          cloud.add(circleMesh);
+        }
+
+        // Set cloud's initial position
         cloud.position.set(
-          Math.random() * window.innerWidth - window.innerWidth / 2,
+          // -500 ~ window.innerWidth + 500
+          Math.random() * window.innerWidth * 2 - window.innerWidth,
           Math.random() * window.innerHeight - window.innerHeight / 2,
           0
         );
+
         clouds.push(cloud);
         speeds.push(speed);
         scene.add(cloud);
@@ -95,10 +89,13 @@
         for (let i = 0; i < clouds.length; i++) {
           const cloud = clouds[i];
           cloud.position.x += speeds[i];
-          if (cloud.position.x > window.innerWidth / 2) {
-            cloud.position.x = window.innerWidth / -2;
+
+          // Reset position when cloud goes completely off the screen
+          if (cloud.position.x > window.innerWidth / 2 + 500) {
+            cloud.position.x = window.innerWidth / -2 - 500;
             cloud.position.y =
               Math.random() * window.innerHeight - window.innerHeight / 2;
+            speeds[i] = Math.random() * 1.5 + 0.5; // Reset speed
           }
         }
 
